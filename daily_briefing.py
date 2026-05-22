@@ -1,7 +1,7 @@
 from datetime import datetime
 import os
 import json
-import requests
+# import requests
 from openai import OpenAI
 
 # Configuration
