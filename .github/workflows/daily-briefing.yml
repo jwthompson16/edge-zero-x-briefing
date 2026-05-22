@@ -1,65 +1,28 @@
-from datetime import datetime
-import os
-from openai import OpenAI
+name: Daily Edge Zero Briefing
 
-print("=== Edge Zero Daily X Briefing ===")
-print("Date:", datetime.now().strftime("%B %d, %Y"))
-print("")
+on:
+  schedule:
+    - cron: '0 13 * * *'    # 8 AM CDT
+  workflow_dispatch:
 
-# Use your existing secret name
-OPENAI_API_KEY = os.getenv("LLM_API_KEY")
-TO_EMAIL = os.getenv("TO_EMAIL")
-
-def generate_briefing():
-    if not OPENAI_API_KEY:
-        return "Error: OpenAI API key not found. Please check GitHub secrets."
-    
-    client = OpenAI(api_key=OPENAI_API_KEY)
-    
-    prompt = f"""
-    You are an analyst for Edge Zero, a company focused on low-voltage transformer monitoring for electric utilities.
-
-    Create a clean, professional daily briefing based on recent X activity.
-
-    Current date: {datetime.now().strftime('%B %d, %Y')}
-
-    Format exactly like this:
-
-    **Daily X Feed Briefing** ({datetime.now().strftime('%B %d, %Y')})
-
-    ### 1. Smart Grid
-    [Key posts and relevance to Edge Zero]
-
-    ### 2. Regulatory Rulings on Electric Utilities in the U.S.
-    [Key posts and relevance]
-
-    ### 3. Competitors to Edge Zero
-    [Any mentions or related companies]
-
-    ### 4. Electric Utility Issues Edge Zero Could Address
-    [Relevant challenges and opportunities]
-
-    ### Summary & Opportunities for Edge Zero
-    Key takeaways.
-    """
-
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
-        )
-        return response.choices[0].message.content
-    except Exception as e:
-        return f"Error generating briefing: {str(e)}"
-
-def main():
-    briefing = generate_briefing()
-    print(briefing)
-    
-    # Save for email
-    with open("briefing.md", "w", encoding="utf-8") as f:
-        f.write(briefing)
-
-if __name__ == "__main__":
-    main()
+jobs:
+  briefing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: pip install openai
+      
+      - name: Run briefing script
+        env:
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          TO_EMAIL: ${{ secrets.TO_EMAIL }}
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+        run: python daily_briefing.py
