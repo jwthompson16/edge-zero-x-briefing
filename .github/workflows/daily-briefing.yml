@@ -3,7 +3,7 @@ name: Daily Edge Zero Briefing
 on:
   schedule:
     - cron: '0 13 * * *'    # 8 AM CDT
-  workflow_dispatch:        # Manual test
+  workflow_dispatch:
 
 jobs:
   briefing:
@@ -23,16 +23,6 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           TO_EMAIL: ${{ secrets.TO_EMAIL }}
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
         run: python daily_briefing.py
-      
-      - name: Send Email
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          username: ${{ secrets.EMAIL_USER }}
-          password: ${{ secrets.EMAIL_PASS }}
-          subject: Edge Zero Daily X Briefing - ${{ env.DATE }}
-          body: file://briefing.md
-          to: ${{ secrets.TO_EMAIL }}
-          from: Edge Zero Bot <${{ secrets.EMAIL_USER }}>
