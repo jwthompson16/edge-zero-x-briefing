@@ -21,7 +21,7 @@ jobs:
       
       - name: Run briefing script
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.LLM_API_KEY }}     # <-- Fixed here
           TO_EMAIL: ${{ secrets.TO_EMAIL }}
           EMAIL_USER: ${{ secrets.EMAIL_USER }}
           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
