@@ -1,9 +1,16 @@
+name: Daily Edge Zero Briefing
+
+on:
+  schedule:
+    - cron: '0 13 * * *'    # 8 AM CDT
+  workflow_dispatch:
+
 jobs:
   briefing:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      models: read      # Important for GitHub Models
+      models: read
     
     steps:
       - uses: actions/checkout@v4
@@ -17,8 +24,4 @@ jobs:
         run: pip install openai
       
       - name: Run briefing script
-        env:
-          TO_EMAIL: ${{ secrets.TO_EMAIL }}
-          EMAIL_USER: ${{ secrets.EMAIL_USER }}
-          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
         run: python daily_briefing.py
