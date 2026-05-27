@@ -1,55 +1,48 @@
 from datetime import datetime
 import os
-from anthropic import Anthropic
+from openai import OpenAI
 
 print("=== Edge Zero Daily X Briefing ===")
 print("Date:", datetime.now().strftime("%B %d, %Y"))
 print("")
 
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+# Use GitHub's free Models
+client = OpenAI(
+    base_url="https://models.inference.ai.azure.com",
+    api_key=os.getenv("GITHUB_TOKEN")   # GitHub automatically provides this
+)
 
-if not ANTHROPIC_API_KEY:
-    print("❌ Error: ANTHROPIC_API_KEY not found!")
-else:
-    print("✅ Anthropic API Key found!")
-    
-    try:
-        client = Anthropic(api_key=ANTHROPIC_API_KEY)
-        
-        prompt = """
-        Create a professional daily briefing for Edge Zero (low-voltage transformer monitoring for utilities).
-        Current date: """ + datetime.now().strftime("%B %d, %Y") + """
+prompt = f"""
+You are an analyst for Edge Zero. Create a daily briefing from recent X activity.
 
-        Format exactly like this:
+Current date: {datetime.now().strftime('%B %d, %Y')}
 
-        **Daily X Feed Briefing** (""" + datetime.now().strftime("%B %d, %Y") + """)
+Format exactly like this:
 
-        ### 1. Smart Grid
-        [Summary]
+**Daily X Feed Briefing** ({datetime.now().strftime('%B %d, %Y')})
 
-        ### 2. Regulatory Rulings on Electric Utilities in the U.S.
-        [Summary]
+### 1. Smart Grid
+[Key insights]
 
-        ### 3. Competitors to Edge Zero
-        [Summary]
+### 2. Regulatory Rulings
+[Key insights]
 
-        ### 4. Electric Utility Issues Edge Zero Could Address
-        [Summary]
+### 3. Competitors to Edge Zero
+[Key insights]
 
-        ### Summary & Opportunities
-        Key takeaways for Edge Zero.
-        """
+### 4. Utility Issues Edge Zero Can Solve
+[Key insights]
 
-        message = client.messages.create(
-            model="claude-3-5-sonnet-20240620",   # or claude-3-opus-20240229 if you have access
-            max_tokens=800,
-            temperature=0.7,
-            messages=[{"role": "user", "content": prompt}]
-        )
-        
-        print(message.content[0].text)
-        
-    except Exception as e:
-        print("❌ Claude Error:", str(e))
+### Summary & Opportunities
+"""
 
-print("\nTest complete.")
+try:
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",           # or "llama-3.1-70b" etc.
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=800,
+        temperature=0.7
+    )
+    print(response.choices[0].message.content)
+except Exception as e:
+    print("Error:", str(e))
