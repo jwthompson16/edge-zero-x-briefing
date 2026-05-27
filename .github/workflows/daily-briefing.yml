@@ -8,6 +8,10 @@ on:
 jobs:
   briefing:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      models: read        # Needed for GitHub Models
+    
     steps:
       - uses: actions/checkout@v4
       
@@ -17,13 +21,24 @@ jobs:
           python-version: '3.11'
       
       - name: Install dependencies
-        run: pip install anthropic
+        run: pip install openai
       
       - name: Run briefing script
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
           TO_EMAIL: ${{ secrets.TO_EMAIL }}
           EMAIL_USER: ${{ secrets.EMAIL_USER }}
           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
         run: python daily_briefing.py
+      
+      - name: Send Email
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_USER }}
+          password: ${{ secrets.EMAIL_PASS }}
+          subject: Edge Zero Daily X Briefing - ${{ env.DATE }}
+          body: file://briefing.md
+          to: ${{ secrets.TO_EMAIL }}
+          from: Edge Zero Bot <${{ secrets.EMAIL_USER }}>
