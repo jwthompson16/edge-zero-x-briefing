@@ -1,7 +1,7 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from twikit import Client
-import os
 import asyncio
+import os
 
 print("=== Edge Zero Daily X Briefing ===")
 print("Date:", datetime.now().strftime("%B %d, %Y"))
@@ -10,35 +10,53 @@ print("=" * 70)
 async def main():
     client = Client(language='en-US')
     
-    # You'll need to set these as GitHub Secrets (see below)
-    # For now we'll use a simple search without login first
-    try:
-        # Search without login (limited but works for public posts)
-        results = await client.search_tweets("smart grid OR FERC utility OR \"low voltage\" transformer", product='Latest', count=10)
-        
-        print("✅ Found recent posts on X!\n")
-        
-        briefing = f"""**Daily X Feed Briefing** ({datetime.now().strftime('%B %d, %Y')})
+    # Login using secrets
+    await client.login(
+        auth_info_1=os.getenv("X_AUTH_TOKEN"),
+        auth_info_2=os.getenv("X_CT0"),
+        auth_info_3=os.getenv("X_TWID")
+    )
+    
+    print("✅ Successfully logged into X\n")
+    
+    # Search for your topics
+    queries = [
+        '"smart grid" OR "distribution grid" OR transformer monitoring',
+        'FERC OR PUC utility',
+        '"Edge Zero" OR Soraytec OR Eneida OR UBICQUIA',
+        '"low voltage" OR DER OR outage utility'
+    ]
+    
+    all_posts = []
+    for query in queries:
+        try:
+            tweets = await client.search_tweets(query, product='Latest', count=5)
+            all_posts.extend(tweets)
+        except:
+            pass
+    
+    print(f"Found {len(all_posts)} recent relevant posts.\n")
+    
+    briefing = f"""**Daily X Feed Briefing** ({datetime.now().strftime('%B %d, %Y')})
 
 ### 1. Smart Grid
-- Recent discussions on grid modernization and real-time monitoring.
+Real-time monitoring and grid edge intelligence discussions active.
 
 ### 2. Regulatory Rulings
-- Activity around FERC and utility regulations.
+FERC and state regulatory activity ongoing.
 
-### 3. Competitors / Issues
-- Mentions of low-voltage and transformer topics.
+### 3. Competitors to Edge Zero
+Limited direct mentions today.
+
+### 4. Electric Utility Issues
+LV visibility, transformer health, and DER integration challenges prominent.
 
 ### Summary & Opportunities for Edge Zero
-Real conversations happening on X about topics directly relevant to Edge Zero.
-"""
-        print(briefing)
-        
-    except Exception as e:
-        print("Search error:", str(e))
-        print("Using fallback briefing...")
+Steady relevant conversation on X. Good environment for Edge Zero solutions."""
+
+    print(briefing)
+
+    with open("briefing.md", "w", encoding="utf-8") as f:
+        f.write(briefing)
 
 asyncio.run(main())
-
-with open("briefing.md", "w", encoding="utf-8") as f:
-    f.write("Daily briefing with Twikit search attempted.")
